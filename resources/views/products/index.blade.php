@@ -8,6 +8,8 @@
 </head>
 <body class="bg-gray-50 text-gray-900 p-6 lg:p-10">
     <div class="max-w-7xl mx-auto">
+        @include('partials.nav')
+
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-semibold">Products</h1>
             <a

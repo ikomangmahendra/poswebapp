@@ -4,9 +4,11 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::redirect('/', '/dashboard');
+
+Route::get('/dashboard', function () {
+    return view('dashboard.index');
+})->name('dashboard');
 
 Route::get('/categories', function () {
     return view('categories.index');
