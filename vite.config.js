@@ -15,6 +15,8 @@ export default defineConfig({
                 'resources/js/transactions.js',
                 'resources/js/transactions-show.js',
                 'resources/js/transactions-create.js',
+                'resources/js/users.js',
+                'resources/js/users-form.js',
             ],
             refresh: true,
         }),
