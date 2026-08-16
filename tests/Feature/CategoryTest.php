@@ -42,6 +42,18 @@ class CategoryTest extends TestCase
         $response->assertJsonValidationErrors('name');
     }
 
+    public function test_it_rejects_a_duplicate_name_on_create(): void
+    {
+        Category::factory()->create(['name' => 'Beverages']);
+
+        $response = $this->postJson('/api/categories', [
+            'name' => 'Beverages',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('name');
+    }
+
     public function test_it_shows_a_category(): void
     {
         $category = Category::factory()->create();
@@ -63,6 +75,32 @@ class CategoryTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('data.name', 'New name');
         $this->assertDatabaseHas('categories', ['id' => $category->id, 'name' => 'New name']);
+    }
+
+    public function test_it_allows_keeping_its_own_name_on_update(): void
+    {
+        $category = Category::factory()->create(['name' => 'Beverages']);
+
+        $response = $this->putJson("/api/categories/{$category->id}", [
+            'name' => 'Beverages',
+            'description' => 'Updated description only',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.name', 'Beverages');
+    }
+
+    public function test_it_rejects_a_duplicate_name_on_update(): void
+    {
+        Category::factory()->create(['name' => 'Beverages']);
+        $category = Category::factory()->create(['name' => 'Snacks']);
+
+        $response = $this->putJson("/api/categories/{$category->id}", [
+            'name' => 'Beverages',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('name');
     }
 
     public function test_it_deletes_a_category(): void

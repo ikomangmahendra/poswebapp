@@ -422,6 +422,60 @@ Open the browser's DevTools console — there should be no errors during any of 
 
 ---
 
+## Step 13 — Enforce unique category names
+
+**What we did:** added a database-level unique constraint plus matching validation, since the
+original migration and Form Requests allowed two categories to share the same name.
+
+```php
+// database/migrations/2026_08_16_050914_add_unique_index_to_categories_name_column.php
+Schema::table('categories', function (Blueprint $table) {
+    $table->unique('name');
+});
+```
+
+```php
+// app/Http/Requests/StoreCategoryRequest.php
+'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
+```
+
+```php
+// app/Http/Requests/UpdateCategoryRequest.php
+'name' => [
+    'sometimes', 'required', 'string', 'max:255',
+    Rule::unique('categories', 'name')->ignore($this->route('category')),
+],
+```
+
+**Why:** two layers, each doing a different job:
+
+- The **unique index** is the real guarantee — it protects the data even if some other code
+  path (a seeder, a queued job, direct SQL) skips the Form Request entirely.
+- The **validation rule** exists so a duplicate name fails with a friendly `422` and a
+  `name` error message instead of an ugly `500` database exception bubbling up.
+
+On update, `Rule::unique(...)->ignore($this->route('category'))` matters: without `ignore()`,
+saving a category with its *own* unchanged name would incorrectly fail as "a duplicate of
+itself." Passing the route-bound model directly (rather than an ID) works because Laravel's
+`ignore()` reads the model's primary key for you.
+
+**Validate it:**
+```bash
+php artisan migrate
+mysql -h127.0.0.1 -P3306 -uroot -p'yourpassword' poswebapp -e "SHOW INDEX FROM categories WHERE Key_name='categories_name_unique';"
+php artisan test --filter=CategoryTest
+```
+Expect the index to show up, and all 9 tests (including the new duplicate-name cases) to pass.
+Manually:
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/categories \
+  -H "Content-Type: application/json" -H "Accept: application/json" \
+  -d '{"name":"Beverages"}'
+```
+Expected: HTTP 422, `{"errors":{"name":["The name has already been taken."]}}`.
+
+---
+
 ## Key Laravel concepts covered
 
 - Migrations as version-controlled schema
@@ -433,6 +487,8 @@ Open the browser's DevTools console — there should be no errors during any of 
 - Seeders for reproducible demo data
 - Feature tests using `RefreshDatabase`
 - A decoupled UI consuming the same JSON API as `curl`, via Vite-compiled vanilla JS
+- Database-level uniqueness (`unique` index) backed up by matching validation, with
+  `Rule::unique()->ignore()` to exclude the current record on update
 
 ## What's next
 
