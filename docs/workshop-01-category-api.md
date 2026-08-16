@@ -373,6 +373,55 @@ return HTTP 422 with a `name` error.
 
 ---
 
+## Step 12 — A simple UI on top of the API
+
+**What we did:** built a plain Blade page that talks to the JSON API with vanilla JS —
+no frontend framework needed.
+
+- `routes/web.php` — added `GET /categories` (named `categories.index`) returning a view
+- `resources/views/categories/index.blade.php` — a create/edit form plus a table, styled with
+  the Tailwind classes already configured in this project
+- `resources/js/categories.js` — uses `fetch()` against `/api/categories` for list, create,
+  update, and delete, and swaps the form between "Add" and "Edit" mode
+- `vite.config.js` — added `resources/js/categories.js` as a second build entry so it's
+  compiled alongside `app.js`
+
+```js
+// resources/js/categories.js (excerpt)
+async function fetchCategories() {
+    const response = await fetch('/api/categories', { headers: { Accept: 'application/json' } });
+    const { data } = await response.json();
+    renderTable(data);
+}
+```
+
+**Why:** this is the same decoupled-frontend pattern used by real SPAs — the UI is just
+another API consumer, exactly like the `curl` commands in Step 11. Two details worth noting:
+
+- Rows are built with `document.createElement` + `textContent`, not `innerHTML` with
+  interpolated strings — category names/descriptions come from user input, so rendering them
+  via `innerHTML` would be a stored-XSS hole (a category named `<img src=x onerror=...>` would
+  execute). `textContent` always renders as plain text.
+- The routes in `routes/api.php` have no `auth` middleware and `routes/web.php` doesn't put
+  this page behind the `web` session/CSRF stack in a way that blocks the fetch calls, so no
+  CSRF token handling was needed yet — that will matter once auth is introduced.
+
+**Validate it:**
+```bash
+npm run build          # or `npm run dev` / `composer run dev` for hot reload
+php artisan serve
+```
+Open `http://127.0.0.1:8000/categories` in a browser. You should see the 5 seeded categories
+in a table. Try:
+- Typing a name + description and clicking **Save** → new row appears, form clears
+- Clicking **Edit** on a row → form switches to "Edit Category" and pre-fills the fields
+- Changing the name and saving → the row updates in place
+- Clicking **Delete** → a confirm dialog, then the row disappears
+
+Open the browser's DevTools console — there should be no errors during any of the above.
+
+---
+
 ## Key Laravel concepts covered
 
 - Migrations as version-controlled schema
@@ -383,6 +432,7 @@ return HTTP 422 with a `name` error.
 - Route-model binding (`Category $category` auto-resolves from the URL)
 - Seeders for reproducible demo data
 - Feature tests using `RefreshDatabase`
+- A decoupled UI consuming the same JSON API as `curl`, via Vite-compiled vanilla JS
 
 ## What's next
 
