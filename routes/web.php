@@ -2,6 +2,7 @@
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -36,3 +37,15 @@ Route::get('/products/{product}/edit', function (Product $product) {
         'categories' => Category::orderBy('name')->get(),
     ]);
 })->name('products.edit');
+
+Route::get('/transactions', function () {
+    return view('transactions.index');
+})->name('transactions.list');
+
+Route::get('/transactions/create', function () {
+    return view('transactions.create', ['products' => Product::orderBy('name')->get()]);
+})->name('transactions.create');
+
+Route::get('/transactions/{transaction}', function (Transaction $transaction) {
+    return view('transactions.show', ['transaction' => $transaction]);
+})->name('transactions.detail');

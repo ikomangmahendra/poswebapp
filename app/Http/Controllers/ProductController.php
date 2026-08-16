@@ -70,6 +70,12 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        if ($item = $product->transactionItems()->first()) {
+            return response()->json([
+                'message' => "Product is referenced by transaction #{$item->transaction_id}.",
+            ], Response::HTTP_CONFLICT);
+        }
+
         $product->delete();
 
         return response()->noContent();

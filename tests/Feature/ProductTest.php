@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -228,5 +229,19 @@ class ProductTest extends TestCase
 
         $response->assertNoContent();
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    }
+
+    public function test_it_prevents_deleting_a_product_used_by_a_transaction(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+        $transaction = Transaction::createFromItems([
+            ['product_id' => $product->id, 'quantity' => 1],
+        ]);
+
+        $response = $this->deleteJson("/api/products/{$product->id}");
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('message', "Product is referenced by transaction #{$transaction->id}.");
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
     }
 }
