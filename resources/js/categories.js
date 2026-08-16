@@ -7,7 +7,7 @@ const searchField = document.querySelector('#search');
 const sortNameButton = document.querySelector('#sort-name');
 const sortNameIndicator = document.querySelector('#sort-name-indicator');
 
-const DESCRIPTION_MAX_LENGTH = 50;
+const DESCRIPTION_MAX_LENGTH = 100;
 const SEARCH_MIN_LENGTH = 3;
 const SEARCH_DEBOUNCE_MS = 300;
 
