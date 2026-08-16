@@ -1,3 +1,5 @@
+import { csrfToken } from './csrf';
+
 const apiUrl = '/api/users';
 
 const tableBody = document.querySelector('#user-table-body');
@@ -104,7 +106,7 @@ tableBody.addEventListener('click', async (event) => {
 
     await fetch(`${apiUrl}/${button.dataset.id}`, {
         method: 'DELETE',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
     });
 
     fetchUsers(currentPage);

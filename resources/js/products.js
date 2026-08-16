@@ -1,3 +1,5 @@
+import { csrfToken } from './csrf';
+
 const apiUrl = '/api/products';
 
 const tableBody = document.querySelector('#product-table-body');
@@ -116,7 +118,7 @@ tableBody.addEventListener('click', async (event) => {
 
     await fetch(`${apiUrl}/${button.dataset.id}`, {
         method: 'DELETE',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
     });
 
     fetchProducts(currentPage);

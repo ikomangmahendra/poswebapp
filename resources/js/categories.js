@@ -1,3 +1,5 @@
+import { csrfToken } from './csrf';
+
 const apiUrl = '/api/categories';
 
 const tableBody = document.querySelector('#category-table-body');
@@ -113,7 +115,7 @@ tableBody.addEventListener('click', async (event) => {
 
     await fetch(`${apiUrl}/${button.dataset.id}`, {
         method: 'DELETE',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
     });
 
     fetchCategories(currentPage);

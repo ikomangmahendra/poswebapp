@@ -1,3 +1,5 @@
+import { csrfToken } from './csrf';
+
 const productSelect = document.querySelector('#product-select');
 const quantityInput = document.querySelector('#quantity-input');
 const addItemButton = document.querySelector('#add-item-button');
@@ -127,6 +129,7 @@ submitButton.addEventListener('click', async () => {
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
+            'X-CSRF-TOKEN': csrfToken(),
         },
         body: JSON.stringify(payload),
     });

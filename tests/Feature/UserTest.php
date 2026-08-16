@@ -11,6 +11,20 @@ class UserTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // A fixed, far-in-the-past actor so it never collides with this file's
+        // own name/email search terms or sort-ordering assertions against the
+        // same `users` table it's authenticating against.
+        $this->actingAs(User::factory()->create([
+            'name' => 'Test Actor',
+            'email' => 'test-actor@example.com',
+            'updated_at' => now()->subYear(),
+        ]));
+    }
+
     public function test_it_lists_users(): void
     {
         User::factory()->count(3)->create();
@@ -18,7 +32,7 @@ class UserTest extends TestCase
         $response = $this->getJson('/api/users');
 
         $response->assertOk();
-        $response->assertJsonCount(3, 'data');
+        $response->assertJsonCount(4, 'data'); // 3 created here + the acting user
     }
 
     public function test_it_does_not_expose_the_password_in_the_response(): void
@@ -79,7 +93,7 @@ class UserTest extends TestCase
 
         $response->assertOk();
         $this->assertSame(
-            ['Alice', 'Budi', 'Carla'],
+            ['Alice', 'Budi', 'Carla', 'Test Actor'],
             collect($response->json('data'))->pluck('name')->all(),
         );
     }

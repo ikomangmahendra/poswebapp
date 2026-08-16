@@ -1,3 +1,5 @@
+import { csrfToken } from './csrf';
+
 const apiUrl = '/api/users';
 
 const form = document.querySelector('#user-form');
@@ -36,6 +38,7 @@ form.addEventListener('submit', async (event) => {
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
+            'X-CSRF-TOKEN': csrfToken(),
         },
         body: JSON.stringify(payload),
     });
