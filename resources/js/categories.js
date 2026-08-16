@@ -2,17 +2,28 @@ const apiUrl = '/api/categories';
 
 const tableBody = document.querySelector('#category-table-body');
 const pagination = document.querySelector('#pagination');
+const searchForm = document.querySelector('#search-form');
+const searchField = document.querySelector('#search');
 
 const DESCRIPTION_MAX_LENGTH = 50;
+const SEARCH_MIN_LENGTH = 3;
+const SEARCH_DEBOUNCE_MS = 300;
 
 let currentPage = 1;
+let currentSearch = '';
+let searchDebounceTimer = null;
 
 function truncate(text, maxLength) {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 }
 
 async function fetchCategories(page = 1) {
-    const response = await fetch(`${apiUrl}?page=${page}`, { headers: { Accept: 'application/json' } });
+    const params = new URLSearchParams({ page });
+    if (currentSearch) {
+        params.set('search', currentSearch);
+    }
+
+    const response = await fetch(`${apiUrl}?${params}`, { headers: { Accept: 'application/json' } });
     const { data, meta } = await response.json();
 
     currentPage = meta.current_page;
@@ -64,7 +75,7 @@ function renderPagination(meta) {
     const info = document.createElement('span');
     info.textContent = meta.total > 0
         ? `Showing ${meta.from}-${meta.to} of ${meta.total}`
-        : 'No categories';
+        : currentSearch ? 'No categories match your search' : 'No categories';
 
     const controls = document.createElement('div');
     controls.className = 'flex items-center gap-3';
@@ -102,6 +113,26 @@ tableBody.addEventListener('click', async (event) => {
     });
 
     fetchCategories(currentPage);
+});
+
+function applySearch(value) {
+    if (value.length > 0 && value.length < SEARCH_MIN_LENGTH) {
+        return;
+    }
+
+    currentSearch = value;
+    fetchCategories(1);
+}
+
+searchField.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => applySearch(searchField.value.trim()), SEARCH_DEBOUNCE_MS);
+});
+
+searchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    clearTimeout(searchDebounceTimer);
+    applySearch(searchField.value.trim());
 });
 
 fetchCategories();

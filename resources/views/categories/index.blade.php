@@ -18,6 +18,17 @@
             </a>
         </div>
 
+        <form id="search-form" class="mb-4">
+            <input
+                type="search"
+                id="search"
+                name="search"
+                minlength="3"
+                placeholder="Search by name (min. 3 characters)..."
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-300"
+            >
+        </form>
+
         <table class="w-full bg-white border border-gray-200 rounded-md overflow-hidden text-sm">
             <thead class="bg-gray-100 text-left">
                 <tr>

@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class CategoryController extends Controller
@@ -13,9 +14,15 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return CategoryResource::collection(Category::latest('updated_at')->paginate(15));
+        return CategoryResource::collection(
+            Category::query()
+                ->when($request->string('search')->trim()->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
+                ->latest('updated_at')
+                ->paginate(15)
+                ->withQueryString()
+        );
     }
 
     /**
