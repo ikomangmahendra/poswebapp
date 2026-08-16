@@ -3,7 +3,13 @@ const apiUrl = '/api/categories';
 const tableBody = document.querySelector('#category-table-body');
 const pagination = document.querySelector('#pagination');
 
+const DESCRIPTION_MAX_LENGTH = 50;
+
 let currentPage = 1;
+
+function truncate(text, maxLength) {
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+}
 
 async function fetchCategories(page = 1) {
     const response = await fetch(`${apiUrl}?page=${page}`, { headers: { Accept: 'application/json' } });
@@ -24,9 +30,13 @@ function renderTable(categories) {
         nameCell.className = 'px-4 py-2 border-b border-gray-200';
         nameCell.textContent = category.name;
 
+        const description = category.description ?? '';
         const descriptionCell = document.createElement('td');
         descriptionCell.className = 'px-4 py-2 border-b border-gray-200 text-gray-600';
-        descriptionCell.textContent = category.description ?? '';
+        descriptionCell.textContent = truncate(description, DESCRIPTION_MAX_LENGTH);
+        if (description.length > DESCRIPTION_MAX_LENGTH) {
+            descriptionCell.title = description;
+        }
 
         const actionsCell = document.createElement('td');
         actionsCell.className = 'px-4 py-2 border-b border-gray-200 text-right space-x-3';
