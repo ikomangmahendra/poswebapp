@@ -20,6 +20,20 @@ class CategoryTest extends TestCase
         $response->assertJsonCount(3, 'data');
     }
 
+    public function test_it_lists_categories_ordered_by_updated_at_desc(): void
+    {
+        $oldest = Category::factory()->create(['updated_at' => now()->subDays(2)]);
+        $newest = Category::factory()->create(['updated_at' => now()]);
+        $middle = Category::factory()->create(['updated_at' => now()->subDay()]);
+
+        $response = $this->getJson('/api/categories');
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.id', $newest->id);
+        $response->assertJsonPath('data.1.id', $middle->id);
+        $response->assertJsonPath('data.2.id', $oldest->id);
+    }
+
     public function test_it_creates_a_category(): void
     {
         $response = $this->postJson('/api/categories', [
