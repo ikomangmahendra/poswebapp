@@ -11,6 +11,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/categories.js',
                 'resources/js/categories-form.js',
+                'resources/js/products.js',
+                'resources/js/products-form.js',
             ],
             refresh: true,
             fonts: [

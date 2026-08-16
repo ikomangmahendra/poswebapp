@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryRequest;
-use App\Http\Resources\CategoryResource;
-use App\Models\Category;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class CategoryController extends Controller
+class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -25,8 +25,9 @@ class CategoryController extends Controller
             $direction = 'desc';
         }
 
-        return CategoryResource::collection(
-            Category::query()
+        return ProductResource::collection(
+            Product::query()
+                ->with('category')
                 ->when($request->string('search')->trim()->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
                 ->orderBy($sort, $direction)
                 ->paginate(15)
@@ -37,11 +38,11 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCategoryRequest $request)
+    public function store(StoreProductRequest $request)
     {
-        $category = Category::create($request->validated());
+        $product = Product::create($request->validated());
 
-        return CategoryResource::make($category)
+        return ProductResource::make($product->load('category'))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
@@ -49,33 +50,27 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(Product $product)
     {
-        return CategoryResource::make($category);
+        return ProductResource::make($product->load('category'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $category->update($request->validated());
+        $product->update($request->validated());
 
-        return CategoryResource::make($category);
+        return ProductResource::make($product->load('category'));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Product $product)
     {
-        if ($product = $category->products()->first()) {
-            return response()->json([
-                'message' => "Category is being used by product \"{$product->name}\".",
-            ], Response::HTTP_CONFLICT);
-        }
-
-        $category->delete();
+        $product->delete();
 
         return response()->noContent();
     }

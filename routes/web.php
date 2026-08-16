@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,3 +19,18 @@ Route::get('/categories/create', function () {
 Route::get('/categories/{category}/edit', function (Category $category) {
     return view('categories.form', ['category' => $category]);
 })->name('categories.edit');
+
+Route::get('/products', function () {
+    return view('products.index');
+})->name('products.list');
+
+Route::get('/products/create', function () {
+    return view('products.form', ['categories' => Category::orderBy('name')->get()]);
+})->name('products.create');
+
+Route::get('/products/{product}/edit', function (Product $product) {
+    return view('products.form', [
+        'product' => $product,
+        'categories' => Category::orderBy('name')->get(),
+    ]);
+})->name('products.edit');

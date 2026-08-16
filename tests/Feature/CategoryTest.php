@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -187,6 +188,31 @@ class CategoryTest extends TestCase
     public function test_it_deletes_a_category(): void
     {
         $category = Category::factory()->create();
+
+        $response = $this->deleteJson("/api/categories/{$category->id}");
+
+        $response->assertNoContent();
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+    }
+
+    public function test_it_prevents_deleting_a_category_used_by_a_product(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['category_id' => $category->id, 'name' => 'Iced Latte']);
+
+        $response = $this->deleteJson("/api/categories/{$category->id}");
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('message', 'Category is being used by product "Iced Latte".');
+        $this->assertDatabaseHas('categories', ['id' => $category->id]);
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
+    }
+
+    public function test_it_deletes_a_category_once_its_product_is_removed(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['category_id' => $category->id]);
+        $product->delete();
 
         $response = $this->deleteJson("/api/categories/{$category->id}");
 
