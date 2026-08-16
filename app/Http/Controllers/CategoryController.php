@@ -16,10 +16,19 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
+        $sortable = ['name', 'updated_at'];
+        if (in_array($request->query('sort'), $sortable, true)) {
+            $sort = $request->query('sort');
+            $direction = $request->query('direction') === 'asc' ? 'asc' : 'desc';
+        } else {
+            $sort = 'updated_at';
+            $direction = 'desc';
+        }
+
         return CategoryResource::collection(
             Category::query()
                 ->when($request->string('search')->trim()->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
-                ->latest('updated_at')
+                ->orderBy($sort, $direction)
                 ->paginate(15)
                 ->withQueryString()
         );

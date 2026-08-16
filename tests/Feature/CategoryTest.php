@@ -60,6 +60,47 @@ class CategoryTest extends TestCase
         $response->assertJsonCount(0, 'data');
     }
 
+    public function test_it_sorts_categories_by_name_ascending(): void
+    {
+        Category::factory()->create(['name' => 'Snacks']);
+        Category::factory()->create(['name' => 'Beverages']);
+        Category::factory()->create(['name' => 'Groceries']);
+
+        $response = $this->getJson('/api/categories?sort=name&direction=asc');
+
+        $response->assertOk();
+        $this->assertSame(
+            ['Beverages', 'Groceries', 'Snacks'],
+            collect($response->json('data'))->pluck('name')->all(),
+        );
+    }
+
+    public function test_it_sorts_categories_by_name_descending(): void
+    {
+        Category::factory()->create(['name' => 'Snacks']);
+        Category::factory()->create(['name' => 'Beverages']);
+        Category::factory()->create(['name' => 'Groceries']);
+
+        $response = $this->getJson('/api/categories?sort=name&direction=desc');
+
+        $response->assertOk();
+        $this->assertSame(
+            ['Snacks', 'Groceries', 'Beverages'],
+            collect($response->json('data'))->pluck('name')->all(),
+        );
+    }
+
+    public function test_it_ignores_an_unsupported_sort_column(): void
+    {
+        Category::factory()->create(['name' => 'Beverages', 'updated_at' => now()->subDay()]);
+        $newest = Category::factory()->create(['name' => 'Snacks', 'updated_at' => now()]);
+
+        $response = $this->getJson('/api/categories?sort=description&direction=asc');
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.id', $newest->id);
+    }
+
     public function test_it_creates_a_category(): void
     {
         $response = $this->postJson('/api/categories', [

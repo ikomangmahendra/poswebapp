@@ -32,7 +32,12 @@
         <table class="w-full bg-white border border-gray-200 rounded-md overflow-hidden text-sm">
             <thead class="bg-gray-100 text-left">
                 <tr>
-                    <th class="px-4 py-2 border-b border-gray-200">Name</th>
+                    <th class="px-4 py-2 border-b border-gray-200">
+                        <button type="button" id="sort-name" class="flex items-center gap-1 font-medium hover:underline">
+                            Name
+                            <span id="sort-name-indicator" class="text-gray-400"></span>
+                        </button>
+                    </th>
                     <th class="px-4 py-2 border-b border-gray-200">Description</th>
                     <th class="px-4 py-2 border-b border-gray-200"></th>
                 </tr>

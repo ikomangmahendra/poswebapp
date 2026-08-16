@@ -4,6 +4,8 @@ const tableBody = document.querySelector('#category-table-body');
 const pagination = document.querySelector('#pagination');
 const searchForm = document.querySelector('#search-form');
 const searchField = document.querySelector('#search');
+const sortNameButton = document.querySelector('#sort-name');
+const sortNameIndicator = document.querySelector('#sort-name-indicator');
 
 const DESCRIPTION_MAX_LENGTH = 50;
 const SEARCH_MIN_LENGTH = 3;
@@ -12,13 +14,15 @@ const SEARCH_DEBOUNCE_MS = 300;
 let currentPage = 1;
 let currentSearch = '';
 let searchDebounceTimer = null;
+let currentSort = 'updated_at';
+let currentDirection = 'desc';
 
 function truncate(text, maxLength) {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 }
 
 async function fetchCategories(page = 1) {
-    const params = new URLSearchParams({ page });
+    const params = new URLSearchParams({ page, sort: currentSort, direction: currentDirection });
     if (currentSearch) {
         params.set('search', currentSearch);
     }
@@ -133,6 +137,17 @@ searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
     clearTimeout(searchDebounceTimer);
     applySearch(searchField.value.trim());
+});
+
+function updateSortIndicator() {
+    sortNameIndicator.textContent = currentSort === 'name' ? (currentDirection === 'asc' ? '▲' : '▼') : '';
+}
+
+sortNameButton.addEventListener('click', () => {
+    currentDirection = currentSort === 'name' && currentDirection === 'asc' ? 'desc' : 'asc';
+    currentSort = 'name';
+    updateSortIndicator();
+    fetchCategories(1);
 });
 
 fetchCategories();
