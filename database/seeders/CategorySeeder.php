@@ -23,5 +23,7 @@ class CategorySeeder extends Seeder
         foreach ($categories as $category) {
             Category::query()->firstOrCreate(['name' => $category['name']], $category);
         }
+
+        Category::factory()->count(45)->create();
     }
 }

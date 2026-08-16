@@ -28,6 +28,8 @@
             </thead>
             <tbody id="category-table-body"></tbody>
         </table>
+
+        <div id="pagination" class="flex items-center justify-between mt-4 text-sm text-gray-600"></div>
     </div>
 </body>
 </html>
