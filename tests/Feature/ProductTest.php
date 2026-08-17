@@ -72,6 +72,18 @@ class ProductTest extends TestCase
         );
     }
 
+    public function test_it_searches_products_by_sku(): void
+    {
+        Product::factory()->create(['name' => 'Iced Latte', 'sku' => 'BEV-LATTE-001']);
+        Product::factory()->create(['name' => 'Potato Chips', 'sku' => 'SNK-CHIPS-001']);
+
+        $response = $this->getJson('/api/products?search=BEV-LATTE');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.name', 'Iced Latte');
+    }
+
     public function test_it_sorts_products_by_name_ascending(): void
     {
         Product::factory()->create(['name' => 'Snacks Combo']);

@@ -17,24 +17,27 @@
         </div>
 
         <div class="bg-white border border-gray-200 rounded-md p-4 mb-6">
-            <div class="flex gap-2 items-end">
-                <div class="flex-1">
-                    <label for="product-select" class="block text-sm mb-1">Product</label>
-                    <select
-                        id="product-select"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-300"
-                    >
-                        @foreach ($products as $product)
-                            <option
-                                value="{{ $product->id }}"
-                                data-name="{{ $product->name }}"
-                                data-price="{{ $product->price }}"
-                                data-stock="{{ $product->stock }}"
-                            >
-                                {{ $product->name }} (${{ $product->price }}) &mdash; {{ $product->stock }} in stock
-                            </option>
-                        @endforeach
-                    </select>
+            <form id="product-search-form" class="relative">
+                <label for="product-search" class="block text-sm mb-1">Product</label>
+                <input
+                    type="search"
+                    id="product-search"
+                    autocomplete="off"
+                    minlength="3"
+                    placeholder="Search by name or SKU (min. 3 characters)..."
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-300"
+                >
+                <ul
+                    id="product-search-results"
+                    class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-md max-h-64 overflow-y-auto text-sm"
+                ></ul>
+            </form>
+
+            <div id="selected-product" class="hidden items-end gap-2 mt-3">
+                <div class="flex-1 text-sm">
+                    <span class="text-gray-500">Selected:</span>
+                    <span id="selected-product-label" class="font-medium"></span>
+                    <button type="button" id="change-product-button" class="ml-2 text-blue-600 hover:underline text-xs">Change</button>
                 </div>
 
                 <div class="w-24">

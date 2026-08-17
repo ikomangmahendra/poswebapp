@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
     })->name('transactions.list');
 
     Route::get('/transactions/create', function () {
-        return view('transactions.create', ['products' => Product::orderBy('name')->get()]);
+        return view('transactions.create');
     })->name('transactions.create');
 
     Route::get('/transactions/{transaction}', function (Transaction $transaction) {

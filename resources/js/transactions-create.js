@@ -1,6 +1,11 @@
 import { csrfToken } from './csrf';
 
-const productSelect = document.querySelector('#product-select');
+const productSearchForm = document.querySelector('#product-search-form');
+const productSearchInput = document.querySelector('#product-search');
+const productSearchResults = document.querySelector('#product-search-results');
+const selectedProductBlock = document.querySelector('#selected-product');
+const selectedProductLabel = document.querySelector('#selected-product-label');
+const changeProductButton = document.querySelector('#change-product-button');
 const quantityInput = document.querySelector('#quantity-input');
 const addItemButton = document.querySelector('#add-item-button');
 const addItemError = document.querySelector('#add-item-error');
@@ -9,11 +14,107 @@ const cartTotal = document.querySelector('#cart-total');
 const submitButton = document.querySelector('#submit-button');
 const submitErrors = document.querySelector('#submit-errors');
 
+const SEARCH_MIN_LENGTH = 3;
+const SEARCH_DEBOUNCE_MS = 300;
+
 const cart = [];
+let selectedProduct = null;
+let searchDebounceTimer = null;
 
 function formatCurrency(value) {
     return `$${Number(value).toFixed(2)}`;
 }
+
+function selectProduct(product) {
+    selectedProduct = product;
+    selectedProductLabel.textContent = product.sku
+        ? `${product.name} (SKU: ${product.sku}) — $${product.price}, ${product.stock} in stock`
+        : `${product.name} — $${product.price}, ${product.stock} in stock`;
+
+    productSearchResults.classList.add('hidden');
+    productSearchResults.innerHTML = '';
+    productSearchForm.classList.add('hidden');
+
+    selectedProductBlock.classList.remove('hidden');
+    selectedProductBlock.classList.add('flex');
+    quantityInput.value = 1;
+    quantityInput.focus();
+}
+
+function resetProductPicker() {
+    selectedProduct = null;
+    selectedProductBlock.classList.add('hidden');
+    selectedProductBlock.classList.remove('flex');
+
+    productSearchForm.classList.remove('hidden');
+    productSearchInput.value = '';
+    productSearchResults.classList.add('hidden');
+    productSearchResults.innerHTML = '';
+    productSearchInput.focus();
+}
+
+function renderSearchResults(products, meta) {
+    productSearchResults.innerHTML = '';
+
+    if (products.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'px-3 py-2 text-gray-500';
+        empty.textContent = 'No matching products.';
+        productSearchResults.appendChild(empty);
+        productSearchResults.classList.remove('hidden');
+        return;
+    }
+
+    products.forEach((product) => {
+        const item = document.createElement('li');
+        item.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer';
+        item.textContent = product.sku
+            ? `${product.name} (SKU: ${product.sku}) — $${product.price}, ${product.stock} in stock`
+            : `${product.name} — $${product.price}, ${product.stock} in stock`;
+        item.addEventListener('click', () => selectProduct(product));
+        productSearchResults.appendChild(item);
+    });
+
+    if (meta.total > products.length) {
+        const hint = document.createElement('li');
+        hint.className = 'px-3 py-2 text-gray-400 text-xs';
+        hint.textContent = `Showing ${products.length} of ${meta.total} matches — refine your search to narrow the list.`;
+        productSearchResults.appendChild(hint);
+    }
+
+    productSearchResults.classList.remove('hidden');
+}
+
+async function searchProducts(term) {
+    const params = new URLSearchParams({ search: term, sort: 'name', direction: 'asc' });
+    const response = await fetch(`/api/products?${params}`, { headers: { Accept: 'application/json' } });
+    const { data, meta } = await response.json();
+
+    renderSearchResults(data, meta);
+}
+
+function applySearch(value) {
+    if (value.length < SEARCH_MIN_LENGTH) {
+        productSearchResults.classList.add('hidden');
+        productSearchResults.innerHTML = '';
+        return;
+    }
+
+    searchProducts(value);
+}
+
+productSearchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => applySearch(productSearchInput.value.trim()), SEARCH_DEBOUNCE_MS);
+});
+
+productSearchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    clearTimeout(searchDebounceTimer);
+    applySearch(productSearchInput.value.trim());
+});
+
+changeProductButton.addEventListener('click', resetProductPicker);
 
 function showAddItemError(message) {
     addItemError.textContent = message;
@@ -76,11 +177,15 @@ function renderCart() {
 addItemButton.addEventListener('click', () => {
     clearAddItemError();
 
-    const option = productSelect.options[productSelect.selectedIndex];
-    const productId = Number(option.value);
-    const name = option.dataset.name;
-    const price = Number(option.dataset.price);
-    const stock = Number(option.dataset.stock);
+    if (!selectedProduct) {
+        showAddItemError('Search for and select a product first.');
+        return;
+    }
+
+    const productId = selectedProduct.id;
+    const name = selectedProduct.name;
+    const price = Number(selectedProduct.price);
+    const stock = Number(selectedProduct.stock);
     const quantity = Number(quantityInput.value);
 
     if (!Number.isInteger(quantity) || quantity < 1) {
@@ -102,8 +207,8 @@ addItemButton.addEventListener('click', () => {
         cart.push({ productId, name, price, stock, quantity });
     }
 
-    quantityInput.value = 1;
     renderCart();
+    resetProductPicker();
 });
 
 function showSubmitErrors(messages) {

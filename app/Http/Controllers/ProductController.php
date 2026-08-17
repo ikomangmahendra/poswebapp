@@ -28,7 +28,13 @@ class ProductController extends Controller
         return ProductResource::collection(
             Product::query()
                 ->with('category')
-                ->when($request->string('search')->trim()->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
+                ->when(
+                    $request->string('search')->trim()->toString(),
+                    fn ($query, $search) => $query->where(
+                        fn ($query) => $query->where('name', 'like', "%{$search}%")
+                            ->orWhere('sku', 'like', "%{$search}%")
+                    )
+                )
                 ->orderBy($sort, $direction)
                 ->paginate(15)
                 ->withQueryString()
