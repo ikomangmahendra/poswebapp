@@ -3,6 +3,7 @@ const transactionId = container.dataset.transactionId;
 
 const itemTableBody = document.querySelector('#item-table-body');
 const createdAtField = document.querySelector('#transaction-created-at');
+const cashierField = document.querySelector('#transaction-cashier');
 const totalField = document.querySelector('#transaction-total');
 
 function formatCurrency(value) {
@@ -18,6 +19,7 @@ async function fetchTransaction() {
     const { data: transaction } = await response.json();
 
     createdAtField.textContent = `Created ${formatDateTime(transaction.created_at)}`;
+    cashierField.textContent = `Cashier: ${transaction.user.name}`;
     totalField.textContent = formatCurrency(transaction.total);
 
     itemTableBody.innerHTML = '';

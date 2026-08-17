@@ -38,6 +38,10 @@ function renderTable(transactions) {
         idCell.className = 'px-4 py-2 border-b border-gray-200';
         idCell.textContent = transaction.id;
 
+        const cashierCell = document.createElement('td');
+        cashierCell.className = 'px-4 py-2 border-b border-gray-200 text-gray-600';
+        cashierCell.textContent = transaction.user.name;
+
         const itemsCell = document.createElement('td');
         itemsCell.className = 'px-4 py-2 border-b border-gray-200 text-gray-600';
         itemsCell.textContent = transaction.items.length;
@@ -59,7 +63,7 @@ function renderTable(transactions) {
         viewLink.className = 'text-blue-600 hover:underline';
 
         actionsCell.appendChild(viewLink);
-        row.append(idCell, itemsCell, totalCell, createdCell, actionsCell);
+        row.append(idCell, cashierCell, itemsCell, totalCell, createdCell, actionsCell);
         tableBody.appendChild(row);
     });
 }

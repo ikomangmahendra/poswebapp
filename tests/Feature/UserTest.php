@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Product;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -233,5 +235,20 @@ class UserTest extends TestCase
 
         $response->assertNoContent();
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    }
+
+    public function test_it_prevents_deleting_a_user_who_rang_up_a_transaction(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['stock' => 10]);
+        $transaction = Transaction::createFromItems([
+            ['product_id' => $product->id, 'quantity' => 1],
+        ], $user);
+
+        $response = $this->deleteJson("/api/users/{$user->id}");
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('message', "User rang up transaction #{$transaction->id} and cannot be deleted.");
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
     }
 }

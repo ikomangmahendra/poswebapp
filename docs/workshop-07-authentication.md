@@ -416,12 +416,19 @@ Expected: all 79 tests passing (70 before this workshop, plus `LoginTest`'s 8 an
 ## What's next
 
 Every request is now attributable to a logged-in user, which was the one thing missing to
-close a loose end from workshop 05: `Transaction` currently has no record of *who* rang up a
-sale. A `user_id` foreign key on `transactions` (nullable or not, depending on whether every
-sale must have a cashier) — restricted-on-delete, following this app's "restrict when the child
-row is independently meaningful history" rule — becomes possible now that
-`Auth::user()` inside `TransactionController::store()` actually refers to someone real. Beyond
-that, this workshop deliberately left two things open: a `role`/permission field on `User` (there's
-still no authorization check anywhere — only authentication) and a delete guard preventing a
-user from deleting the account they're currently logged in as. Both are natural candidates for
-a workshop 08 once there's a concrete reason to enforce them.
+close a loose end from workshop 05: `Transaction` had no record of *who* rang up a sale.
+**Done, as a follow-up to this workshop:** a required, `restrictOnDelete()` `user_id` foreign key
+on `transactions` — `TransactionController::store()` passes `$request->user()` into
+`Transaction::createFromItems($items, $user)`, `TransactionResource` nests the cashier the same
+`{id, name}` way as Product's `category`, and `TransactionSeeder` picks a random already-seeded
+user in place of an `Auth::user()` it doesn't have. That FK gave `User` its first foreign-key
+dependent, so `UserController::destroy()` gained the same guard-then-friendly-409 pattern as
+Category/Product: it checks `$user->transactions()->first()` before deleting and refuses with a
+`409` naming the transaction instead of hitting the raw DB constraint. See the "Create-only
+modules with real business logic" and "User management" notes in `CLAUDE.md` for the finished
+shape.
+
+Still open, and still natural candidates for a workshop 08 once there's a concrete reason to
+enforce them: a `role`/permission field on `User` (there's still no authorization check anywhere
+— only authentication), and a delete guard preventing a user from deleting the account they're
+currently logged in as.

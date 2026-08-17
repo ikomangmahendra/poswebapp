@@ -16,7 +16,8 @@
             <a href="{{ route('transactions.list') }}" class="text-sm text-gray-600 hover:underline">Back to list</a>
         </div>
 
-        <p id="transaction-created-at" class="text-sm text-gray-600 mb-4"></p>
+        <p id="transaction-created-at" class="text-sm text-gray-600 mb-1"></p>
+        <p id="transaction-cashier" class="text-sm text-gray-600 mb-4"></p>
 
         <table class="w-full bg-white border border-gray-200 rounded-md overflow-hidden text-sm">
             <thead class="bg-gray-100 text-left">

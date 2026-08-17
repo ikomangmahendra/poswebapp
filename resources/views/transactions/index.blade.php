@@ -25,6 +25,7 @@
             <thead class="bg-gray-100 text-left">
                 <tr>
                     <th class="px-4 py-2 border-b border-gray-200">ID</th>
+                    <th class="px-4 py-2 border-b border-gray-200">Cashier</th>
                     <th class="px-4 py-2 border-b border-gray-200">Items</th>
                     <th class="px-4 py-2 border-b border-gray-200">
                         <button type="button" id="sort-total" class="flex items-center gap-1 font-medium hover:underline">

@@ -12,11 +12,14 @@ class TransactionTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create());
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
     }
 
     public function test_it_creates_a_transaction_and_computes_totals(): void
@@ -32,6 +35,7 @@ class TransactionTest extends TestCase
         ]);
 
         $response->assertCreated();
+        $response->assertJsonPath('data.user.id', $this->user->id);
         $this->assertEqualsWithDelta(15.00, (float) $response->json('data.total'), 0.001);
         $response->assertJsonCount(2, 'data.items');
         $response->assertJsonPath('data.items.0.product.id', $productA->id);
@@ -104,12 +108,13 @@ class TransactionTest extends TestCase
         $product = Product::factory()->create(['stock' => 10]);
         $transaction = Transaction::createFromItems([
             ['product_id' => $product->id, 'quantity' => 2],
-        ]);
+        ], $this->user);
 
         $response = $this->getJson("/api/transactions/{$transaction->id}");
 
         $response->assertOk();
         $response->assertJsonPath('data.id', $transaction->id);
+        $response->assertJsonPath('data.user.id', $this->user->id);
         $response->assertJsonPath('data.items.0.product.id', $product->id);
     }
 
@@ -117,10 +122,10 @@ class TransactionTest extends TestCase
     {
         $product = Product::factory()->create(['stock' => 100]);
 
-        $oldest = Transaction::createFromItems([['product_id' => $product->id, 'quantity' => 1]]);
+        $oldest = Transaction::createFromItems([['product_id' => $product->id, 'quantity' => 1]], $this->user);
         $oldest->forceFill(['created_at' => now()->subDays(2)])->save();
 
-        $newest = Transaction::createFromItems([['product_id' => $product->id, 'quantity' => 1]]);
+        $newest = Transaction::createFromItems([['product_id' => $product->id, 'quantity' => 1]], $this->user);
         $newest->forceFill(['created_at' => now()])->save();
 
         $response = $this->getJson('/api/transactions');
@@ -135,7 +140,7 @@ class TransactionTest extends TestCase
         $product = Product::factory()->create(['stock' => 10]);
         $transaction = Transaction::createFromItems([
             ['product_id' => $product->id, 'quantity' => 1],
-        ]);
+        ], $this->user);
 
         $this->putJson("/api/transactions/{$transaction->id}", [])->assertStatus(405);
         $this->deleteJson("/api/transactions/{$transaction->id}")->assertStatus(405);

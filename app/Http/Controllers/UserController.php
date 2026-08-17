@@ -75,6 +75,12 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        if ($transaction = $user->transactions()->first()) {
+            return response()->json([
+                'message' => "User rang up transaction #{$transaction->id} and cannot be deleted.",
+            ], Response::HTTP_CONFLICT);
+        }
+
         $user->delete();
 
         return response()->noContent();

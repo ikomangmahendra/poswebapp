@@ -6,6 +6,7 @@ use App\Exceptions\InsufficientStockException;
 use Database\Factories\TransactionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,7 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'total',
     ];
 
@@ -30,6 +32,11 @@ class Transaction extends Model
         return $this->hasMany(TransactionItem::class);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /**
      * Create a transaction from a list of {product_id, quantity} items,
      * snapshotting each product's current price and decrementing its stock.
@@ -38,10 +45,10 @@ class Transaction extends Model
      *
      * @throws InsufficientStockException
      */
-    public static function createFromItems(array $items): self
+    public static function createFromItems(array $items, User $user): self
     {
-        return DB::transaction(function () use ($items) {
-            $transaction = self::create(['total' => 0]);
+        return DB::transaction(function () use ($items, $user) {
+            $transaction = self::create(['user_id' => $user->id, 'total' => 0]);
             $total = 0;
 
             foreach ($items as $item) {
@@ -68,7 +75,7 @@ class Transaction extends Model
 
             $transaction->update(['total' => $total]);
 
-            return $transaction->load('items.product');
+            return $transaction->load('items.product', 'user');
         });
     }
 }

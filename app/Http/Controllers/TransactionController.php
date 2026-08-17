@@ -26,7 +26,7 @@ class TransactionController extends Controller
 
         return TransactionResource::collection(
             Transaction::query()
-                ->with('items.product')
+                ->with('items.product', 'user')
                 ->orderBy($sort, $direction)
                 ->paginate(15)
                 ->withQueryString()
@@ -38,7 +38,7 @@ class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request)
     {
-        $transaction = Transaction::createFromItems($request->validated('items'));
+        $transaction = Transaction::createFromItems($request->validated('items'), $request->user());
 
         return TransactionResource::make($transaction)
             ->response()
@@ -50,6 +50,6 @@ class TransactionController extends Controller
      */
     public function show(Transaction $transaction)
     {
-        return TransactionResource::make($transaction->load('items.product'));
+        return TransactionResource::make($transaction->load('items.product', 'user'));
     }
 }

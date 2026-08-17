@@ -16,6 +16,10 @@ class TransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ],
             'total' => $this->total,
             'items' => $this->items->map(fn ($item) => [
                 'id' => $item->id,

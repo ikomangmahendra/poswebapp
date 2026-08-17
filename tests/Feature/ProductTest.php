@@ -244,7 +244,7 @@ class ProductTest extends TestCase
         $product = Product::factory()->create(['stock' => 10]);
         $transaction = Transaction::createFromItems([
             ['product_id' => $product->id, 'quantity' => 1],
-        ]);
+        ], User::factory()->create());
 
         $response = $this->deleteJson("/api/products/{$product->id}");
 
